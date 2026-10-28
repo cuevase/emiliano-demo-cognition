@@ -13,7 +13,6 @@
     "typecheck": "turbo run typecheck",
     "test": "vitest run",
     "db:migrate": "tsx packages/db/scripts/migrate.ts",
-    "db:seed": "tsx packages/db/scripts/seed.ts",
     "check:permissions": "tsx scripts/check-permissions.ts",
     "check:rls": "tsx scripts/check-rls.ts",
     "check:template": "bash scripts/check-template.sh",

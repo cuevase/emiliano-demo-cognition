@@ -1,4 +1,4 @@
-import { Badge, Card, CardHeader, EmptyState, PageHeader, statusTone } from "@platform/ui";
+import { Badge, Card, EmptyState, PageHeader, statusTone } from "@platform/ui";
 import { requireUser } from "@platform/auth";
 import type { ApprovalStatus } from "@platform/approvals";
 import { ConsoleShell } from "@/components/shell";
