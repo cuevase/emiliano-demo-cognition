@@ -1,0 +1,9 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "globalEnv": ["DATABASE_URL", "APP_DATABASE_URL", "APP_DB_PASSWORD", "NEON_AUTH_BASE_URL", "NEON_AUTH_COOKIE_SECRET", "DEMO_MODE", "AUTH_LOCAL_SECRET", "SLACK_WEBHOOK_URL"],
+  "tasks": {
+    "build": { "dependsOn": ["^build"], "outputs": [".next/**", "!.next/cache/**"] },
+    "typecheck": { "dependsOn": ["^typecheck"] },
+    "dev": { "cache": false, "persistent": true }
+  }
+}
