@@ -2,7 +2,9 @@
   "name": "internal-tools-platform",
   "private": true,
   "packageManager": "pnpm@10.20.0",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
@@ -30,6 +32,12 @@
     "typescript-eslint": "8.72.1",
     "vitest": "4.1.12",
     "pg": "8.23.1",
-    "dotenv": "17.2.3"
+    "dotenv": "17.2.3",
+    "@platform/actions": "workspace:*",
+    "@platform/approvals": "workspace:*",
+    "@platform/audit": "workspace:*",
+    "@platform/db": "workspace:*",
+    "@platform/permissions": "workspace:*",
+    "zod": "4.3.6"
   }
 }

@@ -1,0 +1,4 @@
+{ "name": "@platform/ui", "version": "0.0.0", "private": true, "type": "module",
+  "exports": { ".": "./src/index.ts" }, "scripts": { "typecheck": "tsc -p ." },
+  "dependencies": { "@tanstack/react-table": "8.21.3", "react": "19.3.1", "react-dom": "19.3.1", "clsx": "2.1.1" },
+  "devDependencies": { "@platform/config": "workspace:*", "@types/react": "19.3.0", "@types/react-dom": "19.3.0" } }

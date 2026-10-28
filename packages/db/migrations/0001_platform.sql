@@ -244,13 +244,13 @@ create table platform.approval_decisions (
 -- Only valid state transitions
 create or replace function platform.approval_transition_guard() returns trigger language plpgsql as $$
 begin
+  if new.payload_hash <> old.payload_hash or new.payload <> old.payload then
+    raise exception 'approval payload cannot change';
+  end if;
   if old.status = new.status then return new; end if;
   if not ((old.status = 'pending'  and new.status in ('approved', 'rejected', 'expired', 'cancelled'))
        or (old.status = 'approved' and new.status in ('executed', 'failed'))) then
     raise exception 'invalid approval transition % -> %', old.status, new.status;
-  end if;
-  if new.payload_hash <> old.payload_hash or new.payload <> old.payload then
-    raise exception 'approval payload cannot change';
   end if;
   return new;
 end $$;

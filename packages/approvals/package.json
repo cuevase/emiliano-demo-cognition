@@ -1,0 +1,4 @@
+{ "name": "@platform/approvals", "version": "0.0.0", "private": true, "type": "module",
+  "exports": { ".": "./src/index.ts" }, "scripts": { "typecheck": "tsc -p ." },
+  "dependencies": { "@platform/audit": "workspace:*", "@platform/db": "workspace:*", "@platform/permissions": "workspace:*" },
+  "devDependencies": { "@platform/config": "workspace:*" } }

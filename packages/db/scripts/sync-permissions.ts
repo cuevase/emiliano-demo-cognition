@@ -16,8 +16,8 @@ export async function loadManifests(): Promise<ToolManifest[]> {
 }
 
 /** Mirrors the code-defined role -> permission map into Postgres for RLS policies. */
-export async function syncRolePermissions(client: pg.Client): Promise<void> {
-  const registry = new PermissionRegistry(await loadManifests());
+export async function syncRolePermissions(client: pg.Client, extra: ToolManifest[] = []): Promise<void> {
+  const registry = new PermissionRegistry([...(await loadManifests()), ...extra]);
   const rows = registry.rolePermissionRows();
   await client.query("begin");
   try {

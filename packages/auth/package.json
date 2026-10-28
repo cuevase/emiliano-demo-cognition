@@ -1,0 +1,18 @@
+{
+  "name": "@platform/auth",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts", "./personas": "./src/personas.ts" },
+  "scripts": { "typecheck": "tsc -p ." },
+  "dependencies": {
+    "@neondatabase/auth": "0.7.0-beta",
+    "@platform/audit": "workspace:*",
+    "@platform/db": "workspace:*",
+    "@platform/permissions": "workspace:*",
+    "next": "16.4.3",
+    "react": "19.3.1",
+    "server-only": "0.0.1"
+  },
+  "devDependencies": { "@platform/config": "workspace:*", "@types/react": "19.3.0" }
+}
