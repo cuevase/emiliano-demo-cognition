@@ -14,5 +14,5 @@ const columns: ColumnDef<Row, unknown>[] = [
 ];
 
 export function ItemsTable({ rows }: { rows: Row[] }) {
-  return <QueueView data={rows} columns={columns} statuses={["open", "in_progress", "closed"]} rowHref={(r) => `/items/${r.id}`} />;
+  return <QueueView data={rows} columns={columns} statuses={["open", "in_progress", "closed"]} rowHref={(r) => `/t/__TOOL__/items/${r.id}`} />;
 }

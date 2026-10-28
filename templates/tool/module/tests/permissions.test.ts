@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { closePool } from "@platform/db";
-import { makeUser, ownerQuery, registerManifests } from "../../../tests/helpers";
+import { makeUser, ownerQuery, registerManifests } from "../../../../../tests/helpers";
 import { manifest } from "../manifest";
 import { APPROVAL_THRESHOLD_CENTS, createItem, platform, updateStatus } from "../lib/actions";
 

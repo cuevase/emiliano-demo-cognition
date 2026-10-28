@@ -19,14 +19,14 @@ export default async function Home() {
         <Card className="lg:col-span-2">
           <CardHeader title="Tools" description="Every tool is generated from the same template and registered here." />
           {TOOLS.length === 0 ? (
-            <EmptyState title="No tools yet" description="Run `pnpm new-tool <name>` to scaffold one. It will appear here with sign-in, permissions, audit and approvals already wired." />
+            <EmptyState title="No tools yet" description="Run `pnpm new-tool <name>` to scaffold one. It will appear here, at /t/<name>, with sign-in, permissions, audit and approvals already wired." />
           ) : (
             <ul className="divide-y divide-slate-100">
               {TOOLS.map((t) => (
-                <li key={t.name} className="flex items-center justify-between px-5 py-3">
+                <li key={t.name}><a href={`/t/${t.name}`} className="flex items-center justify-between px-5 py-3 hover:bg-slate-50">
                   <div><div className="font-medium">{t.title}</div><div className="text-sm text-slate-500">{t.description}</div></div>
                   <Badge>{t.ownerTeam}</Badge>
-                </li>
+                </a></li>
               ))}
             </ul>
           )}

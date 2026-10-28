@@ -11,7 +11,7 @@ You are working in a paved-road monorepo. Every internal tool gets sign-in, perm
 - `packages/db`: `withTx` (runs as `app_rw`, which can't bypass RLS) and migrations.
 - `packages/ui`: `AppShell`, `DataTable`, `QueueView`, `RecordDetail`, `Form`, `MaskedField`, `RoleGate`, `ApprovalBanner`, `AuditTrail`.
 - `apps/console`: platform console (approvals inbox, audit viewer, roles).
-- `apps/<tool>`: one Next.js app per tool, created from `templates/tool`.
+- `apps/console/tools/<tool>` + `apps/console/app/t/<tool>`: each tool lives inside the console (one app, one URL, shared sign-in), created from `templates/tool`. Tool code keeps the tool lint guardrails.
 
 ## Hard rules (CI enforces them)
 1. **Every write is a `defineAction`** with a declared `permission`. Never call `tx.db.insert/update/delete` outside a handler. Never import `pg` or `withSystemTx` in a tool.
@@ -24,7 +24,7 @@ You are working in a paved-road monorepo. Every internal tool gets sign-in, perm
 
 ## Workflow
 - New tool: `pnpm new-tool <name>` → see `.agents/skills/create-internal-tool`.
-- Local DB: Postgres on `localhost:5432` (`DATABASE_URL` in `.env`). `pnpm db:migrate` applies `packages/db/migrations` then `apps/*/db/migrations`.
+- Local DB: Postgres on `localhost:5432` (`DATABASE_URL` in `.env`). `pnpm db:migrate` applies `packages/db/migrations` then `apps/console/tools/*/db/migrations`.
 - Before every PR: `pnpm verify` (lint, typecheck, migrate, tests, permission + RLS coverage, build).
 - PR description: list new permissions, which roles get them, new PII/sensitive fields, and which actions need approval.
 

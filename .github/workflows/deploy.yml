@@ -1,0 +1,87 @@
+# Deploys from GitHub Actions instead of Vercel's Git integration, because Vercel Hobby blocks
+# deployments whose commit author (e.g. the Devin bot) isn't on the team. `.git` is removed
+# before each deploy so no commit metadata is sent.
+#   PR opened/updated -> Neon branch preview/pr-<n> (copy of main), migrations, preview deploy, PR comment
+#   PR closed         -> Neon branch deleted
+#   push to main      -> production deploy (the Vercel build runs migrations on the main database)
+# Requires repo secrets NEON_API_KEY and VERCEL_TOKEN.
+name: deploy
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+  push:
+    branches: [main]
+
+concurrency:
+  group: deploy-${{ github.event.pull_request.number || 'production' }}
+  cancel-in-progress: true
+
+env:
+  NEON_PROJECT_ID: winter-unit-74724806
+  VERCEL_ORG_ID: team_FINDPhNg90HSunu5sdzW6dH0
+  VERCEL_PROJECT_ID: prj_LGVnkfDKrKNEx0OiMsJJgwIARo4q
+  NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+  VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+  BRANCH: preview/pr-${{ github.event.pull_request.number }}
+
+jobs:
+  preview:
+    if: github.event_name == 'pull_request' && github.event.action != 'closed' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions: { contents: read, pull-requests: write }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Check secrets
+        run: |
+          if [ -z "$NEON_API_KEY" ] || [ -z "$VERCEL_TOKEN" ]; then
+            echo "::warning::Add NEON_API_KEY and VERCEL_TOKEN repo secrets to enable preview deploys"; echo "SKIP=1" >> "$GITHUB_ENV"
+          fi
+      - name: Neon branch for this PR
+        if: env.SKIP != '1'
+        run: |
+          npm i -g neonctl@8.13.1 vercel@65.5.0 >/dev/null
+          neonctl branches get "$BRANCH" --project-id "$NEON_PROJECT_ID" >/dev/null 2>&1 \
+            || neonctl branches create --project-id "$NEON_PROJECT_ID" --name "$BRANCH" --parent main >/dev/null
+          DIRECT=$(neonctl connection-string "$BRANCH" --project-id "$NEON_PROJECT_ID" --database-name neondb --role-name neondb_owner)
+          POOLED=$(neonctl connection-string "$BRANCH" --project-id "$NEON_PROJECT_ID" --database-name neondb --role-name neondb_owner --pooled)
+          echo "::add-mask::$DIRECT"; echo "::add-mask::$POOLED"
+          echo "DIRECT_URL=$DIRECT" >> "$GITHUB_ENV"; echo "POOLED_URL=$POOLED" >> "$GITHUB_ENV"
+      - name: Deploy preview
+        if: env.SKIP != '1'
+        run: |
+          rm -rf .git
+          vercel deploy --yes --token "$VERCEL_TOKEN" \
+            -b DATABASE_URL="$POOLED_URL" -b DATABASE_URL_UNPOOLED="$DIRECT_URL" \
+            -e DATABASE_URL="$POOLED_URL" -e DATABASE_URL_UNPOOLED="$DIRECT_URL" -e AUTH_MODE=local > deploy.log 2>&1 || { cat deploy.log; exit 1; }
+          URL=$(grep -o 'https://internal-tools-console-[a-z0-9-]*\.vercel\.app' deploy.log | head -1)
+          echo "PREVIEW_URL=$URL" >> "$GITHUB_ENV"; echo "Preview: $URL"
+      - name: Comment preview URL
+        if: env.SKIP != '1'
+        env: { GH_TOKEN: "${{ github.token }}" }
+        run: |
+          BODY="Preview: $PREVIEW_URL (database: Neon branch \`$BRANCH\`, a copy of the demo data; sign in with the demo personas)"
+          gh pr comment ${{ github.event.pull_request.number }} -R ${{ github.repository }} --edit-last --body "$BODY" \
+            || gh pr comment ${{ github.event.pull_request.number }} -R ${{ github.repository }} --body "$BODY"
+
+  cleanup:
+    if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete Neon branch
+        if: env.NEON_API_KEY != ''
+        run: npx -y neonctl@8.13.1 branches delete "$BRANCH" --project-id "$NEON_PROJECT_ID" || true
+
+  production:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Deploy production
+        if: env.VERCEL_TOKEN != ''
+        run: |
+          rm -rf .git
+          npx -y vercel@65.5.0 deploy --prod --yes --token "$VERCEL_TOKEN"

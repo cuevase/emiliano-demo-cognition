@@ -5,7 +5,7 @@
 1. Read `AGENTS.md`. Restate the ticket as: entities + fields (with classification), permissions × roles, actions, approval rules. Put this in the PR description.
 2. Follow `.agents/skills/create-internal-tool`.
 3. Don't change `packages/*`. If the platform can't express a requirement, note it in the PR and stop that part.
-4. `pnpm verify` must pass locally. Run the tool and click through as Alice (support), Carol (approver) and Erin (auditor).
+4. `pnpm verify` must pass locally. Run the console (`pnpm --filter console dev`), open `/t/<name>` and click through as Alice (support), Carol (approver) and Erin (auditor).
 5. PR checklist: new permissions + role grants; PII/sensitive fields; approval-gated actions + thresholds; tests for allowed/denied/approval/RLS; screenshots.
 
 ## Reviewer checklist (humans and Devin Review)
