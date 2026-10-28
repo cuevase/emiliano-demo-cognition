@@ -1,0 +1,12 @@
+node_modules
+.next
+.turbo
+.env
+.env.local
+.env*.local
+.vercel
+coverage
+.permission-coverage
+test-results
+playwright-report
+*.tsbuildinfo

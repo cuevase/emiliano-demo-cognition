@@ -1,0 +1,43 @@
+{
+  "name": "internal-tools-platform",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.20.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "eslint .",
+    "typecheck": "turbo run typecheck",
+    "test": "vitest run",
+    "db:migrate": "tsx packages/db/scripts/migrate.ts",
+    "check:permissions": "tsx scripts/check-permissions.ts",
+    "check:rls": "tsx scripts/check-rls.ts",
+    "check:template": "bash scripts/check-template.sh",
+    "new-tool": "tsx scripts/new-tool.ts",
+    "demo:tamper": "tsx scripts/demo-tamper.ts",
+    "verify": "pnpm lint && pnpm typecheck && pnpm db:migrate && pnpm test && pnpm check:permissions && pnpm check:rls && pnpm build"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.39.5",
+    "@types/node": "24.10.1",
+    "@types/pg": "8.23.1",
+    "eslint": "9.39.5",
+    "globals": "17.13.0",
+    "tsx": "4.23.15",
+    "turbo": "2.11.10",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.72.1",
+    "vitest": "4.1.12",
+    "pg": "8.23.1",
+    "dotenv": "17.2.3",
+    "@platform/actions": "workspace:*",
+    "@platform/approvals": "workspace:*",
+    "@platform/audit": "workspace:*",
+    "@platform/db": "workspace:*",
+    "@platform/permissions": "workspace:*",
+    "zod": "4.3.6"
+  }
+}

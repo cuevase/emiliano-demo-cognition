@@ -1,0 +1,32 @@
+{
+  "name": "console",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev --port 3000",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc -p . --noEmit"
+  },
+  "dependencies": {
+    "@platform/actions": "workspace:*",
+    "@platform/approvals": "workspace:*",
+    "@platform/audit": "workspace:*",
+    "@platform/auth": "workspace:*",
+    "@platform/db": "workspace:*",
+    "@platform/permissions": "workspace:*",
+    "@platform/ui": "workspace:*",
+    "next": "16.4.3",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "zod": "4.3.6"
+  },
+  "devDependencies": {
+    "@platform/config": "workspace:*",
+    "@tailwindcss/postcss": "4.2.4",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "tailwindcss": "4.2.4"
+  }
+}
