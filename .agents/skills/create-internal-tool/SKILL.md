@@ -6,7 +6,7 @@ description: Scaffold and build a new internal tool on the platform from a ticke
 
 1. Read `AGENTS.md`. Identify from the ticket: entities and fields, who can read/create/change/approve, which fields are PII or sensitive, what needs approval and at what threshold.
 2. `pnpm new-tool <name>` (kebab-case). It creates `apps/console/tools/<name>` (manifest, migrations, lib, tests) and pages at `apps/console/app/t/<name>`, and registers the tool in `apps/console/lib/tools.ts` (catalog, nav, approval handlers).
-3. `manifest.ts`: real description and owner team; permissions as `<name>:<verb>`; map them to existing roles (`viewer`, `support_agent`, `ops_analyst`, `finance_approver`, `admin`, `auditor`). Add `conditions` for ownership/amount/region rules.
+3. `manifest.ts`: real description and owner team; permissions as `<name>:<verb>`; map them to existing roles (only roles with `<name>:read` can see the tool at all; `viewer` = every signed-in user, so grant it only if the ticket says so) (`viewer`, `support_agent`, `ops_analyst`, `finance_approver`, `admin`, `auditor`). Add `conditions` for ownership/amount/region rules.
 4. `db/migrations/0001_<name>.sql`: replace `items` with the real tables in schema `tool_<snake>`. For each table: `platform.secure_table`, policies with `app.has_permission`, `platform.classify` for every column.
 5. `lib/schema.ts`: Drizzle tables + `FieldClassification` matching the migration.
 6. `lib/actions.ts`: masked reads via `platform.as`; every write as `platform.defineAction` (see `add-audited-action`, `add-approval-flow`).

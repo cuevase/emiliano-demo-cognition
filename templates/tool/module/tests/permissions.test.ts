@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { closePool } from "@platform/db";
 import { makeUser, ownerQuery, registerManifests } from "../../../../../tests/helpers";
 import { manifest } from "../manifest";
-import { APPROVAL_THRESHOLD_CENTS, createItem, platform, updateStatus } from "../lib/actions";
+import { APPROVAL_THRESHOLD_CENTS, createItem, listItems, platform, updateStatus } from "../lib/actions";
 
 beforeAll(() => registerManifests(manifest));
 afterAll(closePool);
@@ -57,6 +57,17 @@ describe("__TOOL__.update_status", () => {
     expect(d.status).toBe("executed");
     const [row] = await ownerQuery<{ status: string }>("select status from __SCHEMA__.items where id = $1", [id]);
     expect(row?.status).toBe("closed");
+  });
+});
+
+describe("visibility", () => {
+  it("hides the tool from users without __TOOL__:read (default viewer role)", async () => {
+    const owner = await makeUser(["support_agent"]);
+    await createItem(owner, input);
+    const viewer = await makeUser(["viewer"]);
+    expect(platform.registry.can(viewer, "__TOOL__:read")).toBe(false);
+    expect(await listItems(viewer)).toHaveLength(0);
+    expect((await listItems(owner)).length).toBeGreaterThan(0);
   });
 });
 

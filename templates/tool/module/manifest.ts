@@ -13,8 +13,9 @@ export const manifest = {
     "__TOOL__:approve": "Approve high-value changes",
     "__TOOL__:pii.read": "See customer PII unmasked",
   },
+  // Tools are hidden by default: only roles listed here can open /t/__TOOL__. Everyone who signs in
+  // starts as `viewer`, so grant it "__TOOL__:read" only if every employee should see this tool.
   roles: {
-    viewer: ["__TOOL__:read"],
     support_agent: ["__TOOL__:read", "__TOOL__:create", "__TOOL__:update"],
     ops_analyst: ["__TOOL__:read", "__TOOL__:update"],
     finance_approver: ["__TOOL__:read", "__TOOL__:approve", "__TOOL__:pii.read"],

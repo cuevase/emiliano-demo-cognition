@@ -20,7 +20,8 @@ You are working in a paved-road monorepo. Every internal tool gets sign-in, perm
 4. **Every action has tests**: a `describe("<action name>")` block with at least one allowed and one denied case. `pnpm check:permissions` fails otherwise.
 5. **Money movement, privileged changes or anything irreversible above a threshold uses `approval`** in `defineAction`. The requester can never approve; the engine enforces it.
 6. Don't edit `packages/*` or `packages/db/migrations` on a tool ticket. If the platform is missing something, stop and say so in the PR.
-7. Never put secrets, real customer data or real PII in code, fixtures or tests.
+7. **Tools are hidden by default.** Only roles granted `<tool>:read` in the manifest see the tool (nav, home catalog, `/t/<tool>` layout). Don't grant `viewer` (every new sign-in) unless the ticket says everyone should see it.
+8. Never put secrets, real customer data or real PII in code, fixtures or tests.
 
 ## Workflow
 - New tool: `pnpm new-tool <name>` → see `.agents/skills/create-internal-tool`.

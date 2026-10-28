@@ -1,8 +1,7 @@
 import { Badge, Card, CardHeader, EmptyState, PageHeader, statusTone } from "@platform/ui";
 import { requireUser } from "@platform/auth";
 import { ConsoleShell } from "@/components/shell";
-import { platform } from "@/lib/platform";
-import { TOOLS } from "@/lib/tools";
+import { platform, visibleTools } from "@/lib/platform";
 
 export const dynamic = "force-dynamic";
 
@@ -12,17 +11,18 @@ export default async function Home() {
   const toDecide = inbox.filter((r) => r.canDecide);
   const mine = inbox.filter((r) => r.isMine);
   const perms = platform.registry.permissionsFor(user);
+  const tools = visibleTools(user);
   return (
     <ConsoleShell active="home">
       <PageHeader title={`Welcome, ${user.name ?? user.email}`} description="Everything below comes from the shared platform: your roles, permissions, approvals and tools." />
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader title="Tools" description="Every tool is generated from the same template and registered here." />
-          {TOOLS.length === 0 ? (
+          {tools.length === 0 ? (
             <EmptyState title="No tools yet" description="Run `pnpm new-tool <name>` to scaffold one. It will appear here, at /t/<name>, with sign-in, permissions, audit and approvals already wired." />
           ) : (
             <ul className="divide-y divide-slate-100">
-              {TOOLS.map((t) => (
+              {tools.map((t) => (
                 <li key={t.name}><a href={`/t/${t.name}`} className="flex items-center justify-between px-5 py-3 hover:bg-slate-50">
                   <div><div className="font-medium">{t.title}</div><div className="text-sm text-slate-500">{t.description}</div></div>
                   <Badge>{t.ownerTeam}</Badge>
