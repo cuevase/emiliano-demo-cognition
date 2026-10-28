@@ -6,7 +6,7 @@ import { serverAction } from "@platform/actions";
 import { writeAuditEvent } from "@platform/audit";
 import { ApprovalError } from "@platform/approvals";
 import { Forbidden } from "@platform/permissions";
-import { platform } from "@/lib/platform";
+import { platform, platformFor } from "@/lib/platform";
 import { grantRole as grantRoleAction, revokeRole as revokeRoleAction } from "@/lib/actions";
 
 type Result = { ok: true; message?: string; pending?: boolean } | { ok: false; error: string };
@@ -56,7 +56,10 @@ export async function decideApproval(id: string, decision: "approve" | "reject",
   const meta = await getRequestMeta();
   if (!user) return { ok: false, error: "Sign in required" };
   try {
-    const r = await platform.as(user, (tx) => platform.approvals.decide(tx, user, id, decision, comment), meta.requestId);
+    const app = (await platform.as(user, (tx) => platform.approvals.get(tx, id)))?.request.app;
+    if (!app) throw new ApprovalError("Approval request not found", "not_found");
+    const owner = platformFor(app);
+    const r = await owner.as(user, (tx) => owner.approvals.decide(tx, user, id, decision, comment), meta.requestId);
     revalidatePath("/approvals");
     revalidatePath(`/approvals/${id}`);
     if (r.status === "failed") return { ok: false, error: `Approved, but execution failed: ${"error" in r ? r.error : ""}` };
