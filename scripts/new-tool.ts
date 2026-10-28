@@ -51,7 +51,7 @@ const toolsFile = join(root, "apps/console/lib/tools.ts");
 const ident = snake.replace(/_([a-z0-9])/g, (_, c: string) => c.toUpperCase());
 let tools = readFileSync(toolsFile, "utf8");
 tools = `import { manifest as ${ident}Manifest } from "${name}/manifest";\nimport { platform as ${ident}Platform } from "${name}/actions";\n` + tools;
-tools = tools.replace("// new-tool:manifests", `${ident}Manifest,\n  // new-tool:manifests`).replace("// new-tool:platforms", `${name}: ${ident}Platform,\n  // new-tool:platforms`);
+tools = tools.replace("// new-tool:manifests", `${ident}Manifest,\n  // new-tool:manifests`).replace("// new-tool:platforms", `${JSON.stringify(name)}: ${ident}Platform,\n  // new-tool:platforms`);
 writeFileSync(toolsFile, tools);
 
 if (!noInstall) execSync("pnpm install", { cwd: root, stdio: "inherit" });
