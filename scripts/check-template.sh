@@ -20,6 +20,8 @@ cleanup() {
 trap cleanup EXIT
 pnpm new-tool $NAME
 pnpm db:migrate
+# The tool's role grants must reach platform.role_permissions, or RLS hides its rows in the real app.
+node -e "require(\"dotenv/config\");const c=new (require(\"pg\").Client)(process.env.DATABASE_URL);c.connect().then(()=>c.query(\"select count(*)::int n from platform.role_permissions where permission like \x27ci-smoke:%\x27\")).then(r=>{if(!r.rows[0].n){console.error(\"ci-smoke role grants missing from platform.role_permissions\");process.exit(1)}console.log(\"role grants synced: \"+r.rows[0].n)}).finally(()=>c.end())"
 pnpm check:rls
 pnpm check:permissions
 pnpm vitest run $MODULE

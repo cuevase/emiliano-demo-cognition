@@ -8,9 +8,13 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
 
 export async function loadManifests(): Promise<ToolManifest[]> {
   const manifests: ToolManifest[] = [];
-  for (const app of readdirSync(join(root, "apps")).sort()) {
-    const file = join(root, "apps", app, "manifest.ts");
-    if (existsSync(file)) manifests.push((await import(pathToFileURL(file).href)).manifest as ToolManifest);
+  // Tools live in apps/console/tools/<tool>; apps/<app>/manifest.ts is kept for standalone apps.
+  for (const base of [join(root, "apps"), join(root, "apps/console/tools")]) {
+    if (!existsSync(base)) continue;
+    for (const dir of readdirSync(base).sort()) {
+      const file = join(base, dir, "manifest.ts");
+      if (existsSync(file)) manifests.push((await import(pathToFileURL(file).href)).manifest as ToolManifest);
+    }
   }
   return manifests;
 }
