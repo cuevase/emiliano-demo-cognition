@@ -84,7 +84,8 @@ export const issueRefund = platform.defineAction({
     // Threshold uses the stored amount, never a client-supplied one.
     when: (_input, _user, resource) => Number(resource?.data?.amount_cents ?? 0) >= APPROVAL_THRESHOLD_CENTS,
     approverPermission: "refunds:approve",
-    summary: (_input, _user, resource) => `Refund ${formatUsd(Number(resource?.data?.amount_cents ?? 0))} for order ${String(resource?.data?.order_id ?? "")}`,
+    // No amount here: summaries show in the inbox and audit trail to roles that can't see amounts.
+    summary: (_input, _user, resource) => `Refund of ${formatUsd(APPROVAL_THRESHOLD_CENTS)}+ for order ${String(resource?.data?.order_id ?? "")}`,
   },
   handler: async ({ input, user, tx }) => {
     const reference = simulatedReference();

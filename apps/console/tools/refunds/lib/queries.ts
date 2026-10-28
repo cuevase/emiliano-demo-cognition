@@ -106,7 +106,11 @@ const SELECT = `select r.id, r.customer_name, r.customer_email, r.order_id, r.am
                        r.created_at, r.updated_at
                 from tool_refunds.refund_requests r left join platform.users u on u.id = r.requested_by`;
 
-const mask = (user: User, row: RefundRow) => platform.registry.mask(user, TOOL, row, refundClassification);
+/** Platform masking keeps the last 4 characters, which would leak most of an amount; hide amounts entirely. */
+function mask(user: User, row: RefundRow): RefundRow {
+  const out = platform.registry.mask(user, TOOL, row, refundClassification);
+  return canSeeAmounts(user) ? out : { ...out, amount_cents: "••••" };
+}
 
 export async function listRefunds(user: User, f: RefundFilters = {}, limit = 200): Promise<RefundRow[]> {
   if (!platform.registry.can(user, `${TOOL}:read`)) return [];

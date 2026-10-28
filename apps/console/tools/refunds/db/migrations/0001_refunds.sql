@@ -95,7 +95,7 @@ select 'refunds', 'refunds.issue', 'refunds:approve',
   jsonb_build_object('id', r.id::text),
   encode(sha256(convert_to('{"id":"' || r.id::text || '"}', 'UTF8')), 'hex'),
   'tool_refunds.refund_requests', r.id::text,
-  'Refund $' || to_char(r.amount_cents / 100.0, 'FM999990.00') || ' for order ' || r.order_id,
+  'Refund of $500.00+ for order ' || r.order_id,
   r.requested_by, u.email, r.created_at, now() + interval '365 days'
 from tool_refunds.refund_requests r join platform.users u on u.id = r.requested_by
 where r.status = 'pending_approval';

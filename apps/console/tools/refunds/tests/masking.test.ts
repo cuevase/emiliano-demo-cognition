@@ -16,7 +16,7 @@ describe("masking", () => {
       expect(r.customer_email).toMatch(/^.•••@example\.com$/);
       expect(r.customer_name).toContain("•");
       expect(typeof r.amount_cents).toBe("string");
-      expect(String(r.amount_cents)).toContain("•");
+      expect(r.amount_cents).toBe("••••");
     }
   });
 
@@ -44,5 +44,17 @@ describe("masking", () => {
     await submitRefund(requester, i);
     expect(await listRefunds(requester, { q: i.customer_email })).toHaveLength(0);
     expect(await listRefunds(await makeUser(["finance_approver"]), { q: i.customer_email })).toHaveLength(1);
+  });
+});
+
+describe("approval summaries", () => {
+  it("don't reveal the amount", async () => {
+    const requester = await makeUser(["support_agent"]);
+    const r = await submitRefund(requester, input(75_000));
+    if (!r.ok || !("approvalId" in r)) throw new Error("expected approval");
+    const [a] = await ownerQuery<{ summary: string }>("select summary from platform.approval_requests where id = $1", [r.approvalId]);
+    expect(a?.summary).not.toContain("750");
+    const rows = await ownerQuery<{ t: string }>("select concat(reason, before::text, after::text) t from platform.audit_log where actor_id = $1", [requester.id]);
+    expect(rows.every((x) => !x.t.includes("750.00"))).toBe(true);
   });
 });
