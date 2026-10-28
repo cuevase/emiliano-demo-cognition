@@ -2,8 +2,8 @@ import { notFound } from "next/navigation";
 import { AuditTrail, Badge, Card, CardHeader, MaskedField, RecordDetail, RoleGate, statusTone } from "@platform/ui";
 import { requireUser } from "@platform/auth";
 import { queryAudit } from "@platform/audit";
-import { APPROVAL_THRESHOLD_CENTS, getItem, platform } from "@/lib/actions";
-import { Shell } from "../../shell";
+import { APPROVAL_THRESHOLD_CENTS, getItem, platform } from "@/tools/__TOOL__/lib/actions";
+import { ConsoleShell as Shell } from "@/components/shell";
 import { StatusButtons } from "./status-buttons";
 
 export const dynamic = "force-dynamic";
@@ -16,7 +16,7 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
   const audit = await platform.as(user, (tx) => queryAudit(tx, { resourceId: id, limit: 50 }));
   const amount = typeof item.amount_cents === "number" ? item.amount_cents : null;
   return (
-    <Shell active="items">
+    <Shell active="__TOOL__">
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <RecordDetail

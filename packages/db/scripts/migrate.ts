@@ -20,6 +20,13 @@ function migrationDirs(): { app: string; dir: string }[] {
     const dir = join(appsDir, app, "db/migrations");
     if (existsSync(dir)) dirs.push({ app, dir });
   }
+  const toolsDir = join(root, "apps/console/tools");
+  if (existsSync(toolsDir)) {
+    for (const tool of readdirSync(toolsDir).sort()) {
+      const dir = join(toolsDir, tool, "db/migrations");
+      if (existsSync(dir)) dirs.push({ app: tool, dir });
+    }
+  }
   return dirs;
 }
 

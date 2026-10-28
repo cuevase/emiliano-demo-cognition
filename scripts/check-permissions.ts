@@ -13,8 +13,9 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const errors: string[] = [];
 let count = 0;
 
-for (const app of readdirSync(join(root, "apps")).sort()) {
-  const dir = join(root, "apps", app);
+const toolsDir = join(root, "apps/console/tools");
+for (const app of existsSync(toolsDir) ? readdirSync(toolsDir).sort() : []) {
+  const dir = join(toolsDir, app);
   if (!existsSync(join(dir, "manifest.ts"))) continue;
   const { manifest } = (await import(pathToFileURL(join(dir, "manifest.ts")).href)) as { manifest: ToolManifest };
   const { platform } = (await import(pathToFileURL(join(dir, "lib/actions.ts")).href)) as { platform: Platform };

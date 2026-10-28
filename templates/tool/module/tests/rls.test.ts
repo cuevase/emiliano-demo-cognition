@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { closePool, withTx } from "@platform/db";
-import { makeUser, registerManifests } from "../../../tests/helpers";
+import { makeUser, registerManifests } from "../../../../../tests/helpers";
 import { manifest } from "../manifest";
 import { createItem } from "../lib/actions";
 

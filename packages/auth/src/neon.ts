@@ -1,6 +1,6 @@
 import { createNeonAuth } from "@neondatabase/auth/next/server";
 
-export const neonAuthEnabled = (): boolean => !!process.env.NEON_AUTH_BASE_URL;
+export const neonAuthEnabled = (): boolean => !!process.env.NEON_AUTH_BASE_URL && process.env.AUTH_MODE !== "local";
 
 let instance: ReturnType<typeof createNeonAuth> | undefined;
 
