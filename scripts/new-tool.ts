@@ -54,5 +54,5 @@ tools = `import { manifest as ${ident}Manifest } from "${name}/manifest";\nimpor
 tools = tools.replace("// new-tool:manifests", `${ident}Manifest,\n  // new-tool:manifests`).replace("// new-tool:platforms", `${JSON.stringify(name)}: ${ident}Platform,\n  // new-tool:platforms`);
 writeFileSync(toolsFile, tools);
 
-if (!noInstall) execSync("pnpm install", { cwd: root, stdio: "inherit" });
+if (!noInstall) execSync("pnpm install --no-frozen-lockfile", { cwd: root, stdio: "inherit" });
 console.log(`\nCreated apps/${name} (port ${port}). Next:\n  pnpm db:migrate\n  pnpm --filter ${name} dev\n  pnpm verify`);
