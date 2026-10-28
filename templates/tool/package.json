@@ -3,7 +3,10 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "exports": { "./manifest": "./manifest.ts", "./actions": "./lib/actions.ts" },
+  "exports": {
+    "./manifest": "./manifest.ts",
+    "./actions": "./lib/actions.ts"
+  },
   "scripts": {
     "dev": "next dev --port __PORT__",
     "build": "next build",
@@ -23,7 +26,8 @@
     "next": "16.4.3",
     "react": "19.3.1",
     "react-dom": "19.3.1",
-    "zod": "4.3.6"
+    "zod": "4.3.6",
+    "@tanstack/react-table": "8.21.3"
   },
   "devDependencies": {
     "@platform/config": "workspace:*",

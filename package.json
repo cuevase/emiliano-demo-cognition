@@ -1,6 +1,7 @@
 {
   "name": "internal-tools-platform",
   "private": true,
+  "type": "module",
   "packageManager": "pnpm@10.20.0",
   "engines": {
     "node": ">=22"
