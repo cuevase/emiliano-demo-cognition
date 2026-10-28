@@ -1,5 +1,5 @@
 import type { Tx } from "@platform/db";
-import { writeAuditEvent } from "@platform/audit";
+import { redact, writeAuditEvent } from "@platform/audit";
 import { Forbidden, type PermissionRegistry, type User } from "@platform/permissions";
 import { payloadHash } from "./hash";
 
@@ -51,13 +51,18 @@ export class ApprovalError extends Error {
   }
 }
 
+export interface HandlerOptions {
+  /** Payload keys to redact from the audit record written on execution. */
+  redactInput?: string[];
+}
+
 export class ApprovalEngine {
-  private handlers = new Map<string, ApprovalHandler>();
+  private handlers = new Map<string, { handler: ApprovalHandler; options: HandlerOptions }>();
 
   constructor(private registry: PermissionRegistry) {}
 
-  register(app: string, action: string, handler: ApprovalHandler): void {
-    this.handlers.set(`${app}:${action}`, handler);
+  register(app: string, action: string, handler: ApprovalHandler, options: HandlerOptions = {}): void {
+    this.handlers.set(`${app}:${action}`, { handler, options });
   }
 
   async request(
@@ -152,7 +157,8 @@ export class ApprovalEngine {
       [id],
     );
     if (!req) throw new ApprovalError("Approval request not found", "not_found");
-    if (req.status === "expired") throw new ApprovalError("This request has expired", "expired");
+    // Returned rather than thrown so the lazy expiry above commits with this transaction.
+    if (req.status === "expired") return { status: "expired" as ApprovalStatus };
     if (req.status !== "pending") throw new ApprovalError(`Request is already ${req.status}`, "not_pending");
     if (req.requested_by === user.id) throw new Forbidden(req.approver_permission, "requester cannot approve their own request");
     this.registry.assert(user, req.approver_permission, req.payload);
@@ -192,7 +198,8 @@ export class ApprovalEngine {
   }
 
   private async execute(tx: Tx, approver: User, req: ApprovalRequest) {
-    const handler = this.handlers.get(`${req.app}:${req.action}`);
+    const entry = this.handlers.get(`${req.app}:${req.action}`);
+    const handler = entry?.handler;
     await tx.query("savepoint approval_execute");
     try {
       if (!handler) throw new Error(`no handler registered for ${req.app}:${req.action}`);
@@ -209,7 +216,7 @@ export class ApprovalEngine {
         kind: "action", action: `${req.action}`, outcome: "success",
         actor: { id: approver.id, email: approver.email, roles: approver.roles },
         resourceType: req.resource_type, resourceId: req.resource_id,
-        after: req.payload, metadata: { approval_request_id: req.id, requested_by: req.requested_by_email },
+        after: redact(req.payload, entry?.options.redactInput), metadata: { approval_request_id: req.id, requested_by: req.requested_by_email },
       });
       return { status: "executed" as ApprovalStatus, result };
     } catch (err) {

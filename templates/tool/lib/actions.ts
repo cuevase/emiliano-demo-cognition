@@ -51,12 +51,13 @@ export const createItem = platform.defineAction({
 export const updateStatus = platform.defineAction({
   name: "__TOOL__.update_status",
   permission: "__TOOL__:update",
-  input: z.object({ id: z.uuid(), status: z.enum(["open", "in_progress", "closed"]), amount_cents: z.number().int().min(0) }),
+  input: z.object({ id: z.uuid(), status: z.enum(["open", "in_progress", "closed"]) }),
   resource: (input, tx) => loadItem(tx, input.id),
   approval: {
-    when: (input) => input.status === "closed" && input.amount_cents >= APPROVAL_THRESHOLD_CENTS,
+    // The amount comes from the stored row, so a caller cannot dodge approval by understating it.
+    when: (input, _user, resource) => input.status === "closed" && Number(resource?.data?.amount_cents ?? 0) >= APPROVAL_THRESHOLD_CENTS,
     approverPermission: "__TOOL__:approve",
-    summary: (input) => `Close __TITLE__ item ${input.id.slice(0, 8)} (${(input.amount_cents / 100).toFixed(2)} USD)`,
+    summary: (input, _user, resource) => `Close __TITLE__ item ${input.id.slice(0, 8)} (${(Number(resource?.data?.amount_cents ?? 0) / 100).toFixed(2)} USD)`,
   },
   handler: async ({ input, tx }) => {
     await tx.db.update(items).set({ status: input.status, updated_at: new Date() }).where(eq(items.id, input.id));

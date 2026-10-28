@@ -1,6 +1,6 @@
 import type { Tx } from "@platform/db";
 
-export type AuditOutcome = "success" | "denied" | "pending_approval" | "error";
+export type AuditOutcome = "success" | "denied" | "invalid" | "pending_approval" | "error";
 
 export interface AuditEvent {
   kind: "action" | "auth" | "system";

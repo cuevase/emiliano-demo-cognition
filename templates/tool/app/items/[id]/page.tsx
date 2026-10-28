@@ -34,7 +34,7 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
           <CardHeader title="Actions" description={`Closing items of $${APPROVAL_THRESHOLD_CENTS / 100} or more needs approval.`} />
           <div className="p-5">
             <RoleGate allowed={platform.registry.can(user, "__TOOL__:update", { owner_id: item.owner_id })} fallback={<p className="text-sm text-slate-500">You can view this item but not change it.</p>}>
-              <StatusButtons id={item.id} amountCents={amount ?? 0} />
+              <StatusButtons id={item.id} />
             </RoleGate>
           </div>
         </Card>

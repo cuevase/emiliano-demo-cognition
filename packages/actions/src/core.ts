@@ -40,9 +40,10 @@ export interface ActionDefinition<S extends z.ZodType, R> {
   resource?: (input: z.infer<S>, tx: Tx) => Promise<ResourceRef | null>;
   /** When `when` returns true the action is queued for approval instead of running. */
   approval?: {
-    when: (input: z.infer<S>, user: User) => boolean;
+    /** `resource` is the server-loaded target; base thresholds on it, never on client-supplied amounts. */
+    when: (input: z.infer<S>, user: User, resource: ResourceRef | null) => boolean;
     approverPermission: string;
-    summary: (input: z.infer<S>, user: User) => string;
+    summary: (input: z.infer<S>, user: User, resource: ResourceRef | null) => string;
     approvalsRequired?: number;
     ttlHours?: number;
   };
@@ -111,8 +112,13 @@ export class Platform {
         );
         const roles = (await tx.query<{ role: string }>("select role from platform.user_roles where user_id = $1", [request.requested_by])).map((r) => r.role);
         const user: User = requester ? { ...requester, roles } : { id: request.requested_by, email: request.requested_by_email ?? "", name: null, roles, attributes: {} };
-        return def.handler({ input: def.input.parse(payload), user: { ...user, attributes: { ...user.attributes, approved_by: approver.email } }, tx, platform: this });
-      });
+        // Re-check the requester's current access: roles may have been revoked since they asked.
+        const input = def.input.parse(payload);
+        const resource = def.resource ? await def.resource(input, tx) : null;
+        if (def.resource && !resource) throw new Forbidden(def.permission, "resource no longer exists");
+        this.registry.assert(user, def.permission, { ...(resource?.data ?? {}), ...(input as Record<string, unknown>) });
+        return def.handler({ input, user: { ...user, attributes: { ...user.attributes, approved_by: approver.email } }, tx, platform: this });
+      }, { redactInput: def.redactInput });
     }
 
     const run = async (user: User | null, raw: unknown, metaIn: Partial<RequestMeta> = {}): Promise<ActionResult<R>> => {
@@ -125,6 +131,13 @@ export class Platform {
       if (!parsed.success) {
         const issues: Record<string, string[]> = {};
         for (const i of parsed.error.issues) (issues[i.path.join(".") || "_"] ??= []).push(i.message);
+        await withTx(ctxFor(user, this.app, meta.requestId), (tx) =>
+          writeAuditEvent(tx, {
+            kind: "action", action: def.name, outcome: "invalid",
+            actor: { id: user.id, email: user.email, roles: user.roles },
+            reason: `invalid input: ${Object.keys(issues).join(", ")}`, ip: meta.ip, userAgent: meta.userAgent,
+          }),
+        ).catch(() => undefined);
         return { ok: false, code: "invalid", error: "Invalid input", issues };
       }
       const input = parsed.data as z.infer<S>;
@@ -136,8 +149,8 @@ export class Platform {
           this.registry.assert(user, def.permission, { ...(resource?.data ?? {}), ...(input as Record<string, unknown>) });
           const actor = { id: user.id, email: user.email, roles: user.roles };
 
-          if (def.approval?.when(input, user)) {
-            const summary = def.approval.summary(input, user);
+          if (def.approval?.when(input, user, resource)) {
+            const summary = def.approval.summary(input, user, resource);
             const req = await this.approvals.request(tx, user, {
               app: this.app, action: def.name, approverPermission: def.approval.approverPermission,
               payload: input as Record<string, unknown>, summary,

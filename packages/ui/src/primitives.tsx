@@ -49,7 +49,7 @@ export function Badge({ tone = "gray", children }: { tone?: Tone; children: Reac
 }
 
 export const statusTone = (s: string): Tone =>
-  ({ pending: "yellow", pending_approval: "yellow", approved: "blue", executed: "green", success: "green", rejected: "red", denied: "red", failed: "red", error: "red", expired: "gray", cancelled: "gray" })[s] as Tone ?? "gray";
+  ({ pending: "yellow", pending_approval: "yellow", approved: "blue", executed: "green", success: "green", rejected: "red", denied: "red", invalid: "yellow", failed: "red", error: "red", expired: "gray", cancelled: "gray" })[s] as Tone ?? "gray";
 
 export function Input({ className, ...props }: InputHTMLAttributes<HTMLInputElement>) {
   return <input className={cn("block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500", className)} {...props} />;

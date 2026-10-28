@@ -22,6 +22,7 @@ const send = platform.defineAction({
   permission: "payouts:send",
   input: z.object({ amount: z.number().int().positive(), to: z.string() }),
   approval: { when: (i) => i.amount > 500, approverPermission: "payouts:approve", summary: (i) => `Pay ${i.amount} to ${i.to}` },
+  redactInput: ["to"],
   handler: async ({ input }) => {
     executions += 1;
     return { id: randomUUID(), ...input };
@@ -78,11 +79,38 @@ describe("approvals engine", () => {
     const { id } = await queue();
     await ownerQuery("update platform.approval_requests set expires_at = now() - interval '1 minute' where id = $1", [id]);
     const approver = await makeUser(["finance_approver"]);
-    await expect(platform.as(approver, (tx) => platform.approvals.decide(tx, approver, id, "approve"))).rejects.toThrow(/expired/);
+    expect(await platform.as(approver, (tx) => platform.approvals.decide(tx, approver, id, "approve"))).toMatchObject({ status: "expired" });
+    const [persisted] = await ownerQuery<{ status: string }>("select status from platform.approval_requests where id = $1", [id]);
+    expect(persisted?.status).toBe("expired");
     const detail = await platform.as(approver, (tx) => platform.approvals.get(tx, id));
     expect(detail?.request.status).toBe("expired");
     const audits = await ownerQuery("select 1 from platform.audit_log where action = 'approval.expired' and resource_id = $1", [id]);
     expect(audits).toHaveLength(1);
+  });
+
+  it("fails execution if the requester lost access before approval", async () => {
+    const { requester, id } = await queue();
+    await ownerQuery("delete from platform.user_roles where user_id = $1", [requester.id]);
+    const approver = await makeUser(["finance_approver"]);
+    const before = executions;
+    expect(await platform.as(approver, (tx) => platform.approvals.decide(tx, approver, id, "approve"))).toMatchObject({ status: "failed" });
+    expect(executions).toBe(before);
+  });
+
+  it("redacts declared fields in the execution audit record", async () => {
+    const { id } = await queue();
+    const approver = await makeUser(["finance_approver"]);
+    expect(await platform.as(approver, (tx) => platform.approvals.decide(tx, approver, id, "approve"))).toMatchObject({ status: "executed" });
+    const [row] = await ownerQuery<{ to: string }>("select after->>'to' as to from platform.audit_log where action = 'payouts.send' and metadata->>'approval_request_id' = $1", [id]);
+    expect(row?.to).toBeDefined();
+    expect(row?.to).not.toBe("acct");
+  });
+
+  it("audits invalid input", async () => {
+    const u = await makeUser(["support_agent"]);
+    expect(await send(u, { amount: -1, to: "a" })).toMatchObject({ ok: false, code: "invalid" });
+    const rows = await ownerQuery("select 1 from platform.audit_log where actor_id = $1 and outcome = 'invalid'", [u.id]);
+    expect(rows.length).toBe(1);
   });
 
   it("blocks payload changes after the request is created", async () => {

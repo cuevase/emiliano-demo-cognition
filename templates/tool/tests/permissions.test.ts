@@ -36,16 +36,21 @@ describe("__TOOL__.update_status", () => {
   }
   it("allows the owner", async () => {
     const { owner, id } = await newItem();
-    expect(await updateStatus(owner, { id, status: "in_progress", amount_cents: 1000 })).toMatchObject({ ok: true });
+    expect(await updateStatus(owner, { id, status: "in_progress" })).toMatchObject({ ok: true });
   });
   it("denies a support agent who is not the owner", async () => {
     const { id } = await newItem();
     const other = await makeUser(["support_agent"]);
-    expect(await updateStatus(other, { id, status: "in_progress", amount_cents: 1000 })).toMatchObject({ ok: false, code: "forbidden" });
+    expect(await updateStatus(other, { id, status: "in_progress" })).toMatchObject({ ok: false, code: "forbidden" });
+  });
+  it("ignores client-supplied amounts when deciding on approval", async () => {
+    const { owner, id } = await newItem(APPROVAL_THRESHOLD_CENTS);
+    const r = await updateStatus(owner, { id, status: "closed", amount_cents: 0 });
+    expect(r).toMatchObject({ ok: true, pending: true });
   });
   it("routes high-value closes to approval, and an approver executes it", async () => {
     const { owner, id } = await newItem(APPROVAL_THRESHOLD_CENTS);
-    const r = await updateStatus(owner, { id, status: "closed", amount_cents: APPROVAL_THRESHOLD_CENTS });
+    const r = await updateStatus(owner, { id, status: "closed" });
     if (!r.ok || !("pending" in r)) throw new Error("expected approval");
     const approver = await makeUser(["finance_approver"]);
     const d = await platform.as(approver, (tx) => platform.approvals.decide(tx, approver, r.approvalId, "approve"));

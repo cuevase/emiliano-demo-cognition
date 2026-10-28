@@ -79,7 +79,9 @@ export function toCsv(rows: AuditRow[]): string {
   const cols = ["seq", "occurred_at", "kind", "app", "actor_email", "actor_id", "action", "outcome", "resource_type", "resource_id", "changed", "reason", "request_id"] as const;
   const esc = (v: unknown) => {
     const s = v instanceof Date ? v.toISOString() : Array.isArray(v) ? v.join("|") : v == null ? "" : String(v);
-    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    // Neutralise spreadsheet formulas (CSV injection).
+    const safe = /^[=+\-@\t\r]/.test(s) ? `'${s}` : s;
+    return /[",\n\r]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe;
   };
   return [cols.join(","), ...rows.map((r) => cols.map((c) => esc(r[c])).join(","))].join("\n");
 }

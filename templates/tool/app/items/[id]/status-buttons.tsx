@@ -4,10 +4,10 @@ import { Button } from "@platform/ui";
 import { ResultMessage, type ActionResultLike } from "@platform/ui/client";
 import { updateStatus } from "../../server-actions";
 
-export function StatusButtons({ id, amountCents }: { id: string; amountCents: number }) {
+export function StatusButtons({ id }: { id: string }) {
   const [pending, start] = useTransition();
   const [result, setResult] = useState<ActionResultLike | null>(null);
-  const set = (status: string) => start(async () => setResult((await updateStatus({ id, status, amount_cents: amountCents })) as ActionResultLike));
+  const set = (status: string) => start(async () => setResult((await updateStatus({ id, status })) as ActionResultLike));
   return (
     <div className="space-y-3">
       <div className="flex gap-2">

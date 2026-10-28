@@ -62,6 +62,7 @@ export async function decideApproval(id: string, decision: "approve" | "reject",
     const r = await owner.as(user, (tx) => owner.approvals.decide(tx, user, id, decision, comment), meta.requestId);
     revalidatePath("/approvals");
     revalidatePath(`/approvals/${id}`);
+    if (r.status === "expired") return { ok: false, error: "This request has expired" };
     if (r.status === "failed") return { ok: false, error: `Approved, but execution failed: ${"error" in r ? r.error : ""}` };
     return { ok: true, message: r.status };
   } catch (err) {
